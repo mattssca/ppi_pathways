@@ -168,6 +168,20 @@ fgfr3_metrics = fgfr3_metrics %>%
   left_join(basq_mut, by = "name") %>%
   left_join(basq_cna, by = "name")
 
+####################################################################################################
+#Stroma and immune signature correlations
+load("ppi_pathways/results_data/erbb2_correlations.Rdata")
+load("ppi_pathways/results_data/egfr_correlations.Rdata")
+load("ppi_pathways/results_data/fgfr3_correlations.Rdata")
+
+erbb2_correlations = erbb2_correlations %>% rename(name = gene)
+egfr_correlations = egfr_correlations %>% rename(name = gene)
+fgfr3_correlations = fgfr3_correlations %>% rename(name = gene)
+
+egfr_metrics = egfr_metrics %>% left_join(egfr_correlations, by = "name")
+fgfr3_metrics = fgfr3_metrics %>% left_join(fgfr3_correlations, by = "name")
+erbb2_metrics = erbb2_metrics %>% left_join(erbb2_correlations, by = "name")
+
 #combine return
 node_metrics_combined = rbind(egfr_metrics, fgfr3_metrics, erbb2_metrics)
 

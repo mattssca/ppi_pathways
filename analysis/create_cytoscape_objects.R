@@ -33,7 +33,7 @@ write.table(
 #write node data
 write.table(
   egfr_meta_consoldiated,
-  file = "cytoscape/egfr_nodes.txt",
+  file = "ppi_pathways/cytoscape/egfr_nodes.txt",
   sep = "\t",
   quote = FALSE,
   row.names = FALSE
@@ -41,7 +41,7 @@ write.table(
 
 write.table(
   fgfr3_meta_consoldiated,
-  file = "cytoscape/fgfr3_nodes.txt",
+  file = "ppi_pathways/cytoscape/fgfr3_nodes.txt",
   sep = "\t",
   quote = FALSE,
   row.names = FALSE
@@ -49,7 +49,7 @@ write.table(
 
 write.table(
   erbb2_meta_consoldiated,
-  file = "cytoscape/erbb2_nodes.txt",
+  file = "ppi_pathways/cytoscape/erbb2_nodes.txt",
   sep = "\t",
   quote = FALSE,
   row.names = FALSE
