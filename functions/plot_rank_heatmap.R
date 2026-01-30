@@ -53,7 +53,7 @@ plot_rank_heatmap <- function(data,
     default_title <- "Gene Expression Ranks Across Subtypes (7-Class)"
     color_breaks <- c(1, 2, 3, 4, 5)
     color_palette <- c("#9E0142", "#F46D43", "#FFFFBF", "#3288BD", "#5E4FA2")
-    legend_labels <- c("1 (Highest)", "2", "3", "4", "5 (Lowest)")
+    legend_labels <- c("1", "2", "3", "4", "5")
   } else if (system == "5") {
     rank_pattern <- "^rank_5_"
     subtypes_to_plot <- c("Uro", "GU", "BaSq")
@@ -62,7 +62,7 @@ plot_rank_heatmap <- function(data,
     default_title <- "Gene Expression Ranks Across Subtypes (5-Class)"
     color_breaks <- c(1, 2, 3)
     color_palette <- c("#9E0142", "#F46D43", "#FFFFBF")
-    legend_labels <- c("1 (Highest)", "2", "3 (Lowest)")
+    legend_labels <- c("1", "2", "3")
   }
   
   # Use default title if not provided
@@ -222,6 +222,20 @@ plot_rank_heatmap <- function(data,
   # TRANSPOSE: Make subtypes as rows, genes as columns
   rank_matrix <- t(rank_matrix)
   
+  # Create color vector for gene names based on is_seed status
+  if ("is_seed" %in% colnames(data)) {
+    gene_colors <- data$is_seed
+    names(gene_colors) <- data$name
+    
+    # Set colors: FALSE (not seed) = red, TRUE (seed) = black
+    gene_name_colors <- ifelse(gene_colors, "black", "red")
+    names(gene_name_colors) <- names(gene_colors)
+  } else {
+    # If is_seed column doesn't exist, use black for all genes
+    gene_name_colors <- rep("black", ncol(rank_matrix))
+    names(gene_name_colors) <- colnames(rank_matrix)
+  }
+  
   # Color scheme
   col_fun <- colorRamp2(color_breaks, color_palette)
   
@@ -229,29 +243,39 @@ plot_rank_heatmap <- function(data,
   if (order_by == "alphabetical") {
     col_order_param <- order(colnames(rank_matrix))
     cluster_cols_param <- FALSE
+    # Reorder gene colors to match column order
+    gene_name_colors <- gene_name_colors[colnames(rank_matrix)[col_order_param]]
   } else if (order_by == "degree") {
     if ("degree" %in% colnames(data)) {
       # Reverse order so highest degree comes first
       col_order_param <- rev(seq_len(ncol(rank_matrix)))
       cluster_cols_param <- FALSE
+      # Gene colors already in correct order since data is sorted by degree
+      gene_name_colors <- gene_name_colors[colnames(rank_matrix)]
     } else {
       warning("'degree' column not found. Using alphabetical order.")
       col_order_param <- order(colnames(rank_matrix))
       cluster_cols_param <- FALSE
+      gene_name_colors <- gene_name_colors[colnames(rank_matrix)[col_order_param]]
     }
   } else if (order_by == "hub_score") {
     if ("composite_hub_score" %in% colnames(data)) {
       # Reverse order so highest composite hub score comes first
       col_order_param <- seq_len(ncol(rank_matrix))
       cluster_cols_param <- FALSE
+      # Gene colors already in correct order since data is sorted by hub score
+      gene_name_colors <- gene_name_colors[colnames(rank_matrix)]
     } else {
       warning("'composite_hub_score' column not found. Using alphabetical order.")
       col_order_param <- order(colnames(rank_matrix))
       cluster_cols_param <- FALSE
+      gene_name_colors <- gene_name_colors[colnames(rank_matrix)[col_order_param]]
     }
   } else {
     col_order_param <- NULL
     cluster_cols_param <- TRUE
+    # For clustering, we'll need to handle colors after heatmap creation
+    gene_name_colors <- gene_name_colors[colnames(rank_matrix)]
   }
   
   # Create cell function for displaying values
@@ -274,12 +298,12 @@ plot_rank_heatmap <- function(data,
                 show_column_names = TRUE,
                 row_names_side = "left",  # Row labels on left
                 row_names_gp = gpar(fontsize = fontsize_row),
-                column_names_gp = gpar(fontsize = fontsize_col),
+                column_names_gp = gpar(fontsize = fontsize_col, col = gene_name_colors),
                 cell_fun = cell_fun_param,
                 rect_gp = gpar(col = "black", lwd = 2),
                 column_title = title,
                 heatmap_legend_param = list(
-                  title = "Rank\n(1=Highest\nExpression)",
+                  title = "Rank Score",
                   at = color_breaks,
                   labels = legend_labels
                 ))

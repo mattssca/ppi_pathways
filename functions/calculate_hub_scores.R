@@ -196,17 +196,31 @@ calculate_hub_scores <- function(data,
   # TRANSPOSE: Make subtypes as rows, genes as columns
   hub_matrix <- t(hub_matrix)
   
+  # Create color vector for gene names based on is_seed status
+  gene_colors <- top_hubs$is_seed
+  names(gene_colors) <- top_hubs$name
+  
+  # Set colors: FALSE (not seed) = red, TRUE (seed) = black
+  gene_name_colors <- ifelse(gene_colors, "black", "red")
+  names(gene_name_colors) <- names(gene_colors)
+  
   # Determine column order (genes)
   if (order_by == "alphabetical") {
     col_order_param <- order(colnames(hub_matrix))
     cluster_cols_param <- FALSE
+    # Reorder gene colors to match column order
+    gene_name_colors <- gene_name_colors[colnames(hub_matrix)[col_order_param]]
   } else if (order_by == "hub_score") {
     # Reverse order so highest hub score comes first
     col_order_param <- seq_len(ncol(hub_matrix))
     cluster_cols_param <- FALSE
+    # Gene colors already in correct order since top_hubs is sorted by hub score
+    gene_name_colors <- gene_name_colors[colnames(hub_matrix)]
   } else {
     col_order_param <- NULL
     cluster_cols_param <- TRUE
+    # For clustering, we'll need to handle colors after heatmap creation
+    gene_name_colors <- gene_name_colors[colnames(hub_matrix)]
   }
   
   # Color scheme
@@ -227,7 +241,7 @@ calculate_hub_scores <- function(data,
                 rect_gp = gpar(col = "black", lwd = 2),
                 row_names_side = "left",  # Row labels on left
                 row_names_gp = gpar(fontsize = fontsize_row),
-                column_names_gp = gpar(fontsize = fontsize_col),
+                column_names_gp = gpar(fontsize = fontsize_col, col = gene_name_colors),
                 column_title = title,
                 heatmap_legend_param = list(title = "Hub Score"))
   
